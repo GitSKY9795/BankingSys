@@ -23,7 +23,7 @@ async function registerUser(req, res) {
     await user.save();
 
     emailService.sendVerificationEmail(user.email, user.name, otp).catch((err) => {
-      console.error('Failed to send registration email:', err);
+      console.error('Failed to send verification email:', err);
     });
 
     return res.status(201).json({
@@ -53,7 +53,6 @@ async function login(req, res) {
       return res.status(404).json({ message: 'User not found', status: 'failed' });
     }
 
-    // ✅ Works only if password is stored as a bcrypt hash (fixed above)
     const isValidPassword = await user.comparePassword(password);
     if (!isValidPassword) {
       return res.status(401).json({ message: 'Invalid password', status: 'failed' });
@@ -112,6 +111,10 @@ async function verifyEmail(req, res) {
     user.emailVerificationOtp = undefined;
     user.emailVerificationOtpExpires = undefined;
     await user.save();
+
+    emailService.sendWelcomeEmail(user.email, user.name).catch((err) => {
+      console.error('Failed to send welcome email:', err);
+    });
 
     return res.status(200).json({ message: 'Email verified successfully', status: 'success' });
   } catch (err) {

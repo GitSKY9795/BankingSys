@@ -4,22 +4,55 @@ function generateOTP(length = 6) {
     const max = 10 ** length;
     return crypto.randomInt(0, max).toString().padStart(length, '0');
 }
-function getOTPHtml(otp){
+function getOTPHtml(name, otp){
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OTP Verification</title>
+    <title>Verify your email</title>
 </head>
-<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-    <div style="max-width: 600px; margin: auto; background-color: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
-        <h2 style="color: #333;">Your OTP Code</h2>
-        <p style="font-size: 18px; color: #555;">Use the following OTP to complete your verification process:</p>
-        <div style="font-size: 24px; font-weight: bold; color: #007BFF; margin: 20px 0;">${otp}</div>
-        <p style="font-size: 14px; color: #999;">This OTP is valid for 10 minutes. If you did not request this, please ignore this email.</p>
+<body style="margin:0;font-family:Arial,sans-serif;background:#f6f8fc;padding:24px;">
+    <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 12px 30px rgba(15,23,42,0.12);">
+        <div style="background:linear-gradient(135deg,#0f172a,#1e293b);padding:28px 32px;color:#fff;">
+            <p style="margin:0;font-size:14px;letter-spacing:1px;text-transform:uppercase;opacity:0.8;">Backend Ledger</p>
+            <h2 style="margin:10px 0 0;font-size:28px;">Verify your email address</h2>
+        </div>
+        <div style="padding:32px;">
+            <p style="margin:0 0 16px;font-size:16px;color:#334155;">Hello ${name},</p>
+            <p style="margin:0 0 24px;font-size:16px;color:#334155;line-height:1.6;">Use the code below to finish creating your account. It expires in 10 minutes.</p>
+            <div style="display:inline-block;padding:16px 28px;border-radius:12px;background:#eef2ff;color:#1d4ed8;font-size:30px;font-weight:700;letter-spacing:4px;">
+                ${otp}
+            </div>
+            <p style="margin:24px 0 0;font-size:14px;color:#64748b;line-height:1.6;">If you did not request this verification, you can ignore this message.</p>
+        </div>
     </div>
 </body>
 </html>`;
 }
-module.exports = { generateOTP, getOTPHtml };
+
+function getWelcomeHtml(name) {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Backend Ledger</title>
+</head>
+<body style="margin:0;font-family:Arial,sans-serif;background:#f6f8fc;padding:24px;">
+    <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 12px 30px rgba(15,23,42,0.12);">
+        <div style="background:linear-gradient(135deg,#14532d,#16a34a);padding:28px 32px;color:#fff;">
+            <p style="margin:0;font-size:14px;letter-spacing:1px;text-transform:uppercase;opacity:0.8;">Backend Ledger</p>
+            <h2 style="margin:10px 0 0;font-size:28px;">Welcome aboard</h2>
+        </div>
+        <div style="padding:32px;">
+            <p style="margin:0 0 16px;font-size:16px;color:#334155;">Hello ${name},</p>
+            <p style="margin:0 0 24px;font-size:16px;color:#334155;line-height:1.6;">Your email has been verified successfully. Your account is ready to use, and we are glad to have you with Backend Ledger.</p>
+            <p style="margin:0;font-size:14px;color:#64748b;line-height:1.6;">You can now sign in and continue with your dashboard.</p>
+        </div>
+    </div>
+</body>
+</html>`;
+}
+
+module.exports = { generateOTP, getOTPHtml, getWelcomeHtml };

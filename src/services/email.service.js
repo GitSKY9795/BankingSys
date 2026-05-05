@@ -1,5 +1,5 @@
 const nodemailer = require("nodemailer");
-const { getOTPHtml } = require('../utils/utils');
+const { getOTPHtml, getWelcomeHtml } = require('../utils/utils');
 const mailConfig = {
   user: (process.env.GOOGLE_USER_EMAIL || '').trim(),
   clientId: (process.env.GOOGLE_CLIENT_ID || '').trim(),
@@ -60,26 +60,20 @@ try {
   console.error("Error while sending mail:", err);
 }};
 
-async function sendRegisterEmail(userEmail,name){
-    const subject = 'Welcome to the team Backend Ledger'
-    const text = `Hello ${name},\n\n Thank you for registering at backend Ledger.
-    We are excited to have you on board ! \n\n Best regards, \n The Backend Ledger Team`;
-    const html  = `
-    <p>Hello ${name},</p>
-    <p>Thank you for registering at Backend Ledger. We are excited to have you on board!</p>
-    <p>Best regards,</p>
-    <p>The Backend Ledger Team</p>
-    `
-    await sendemail(userEmail,subject,text,html);
+async function sendWelcomeEmail(userEmail, name) {
+  const subject = 'Welcome to Backend Ledger';
+  const text = `Hello ${name},\n\nYour email has been verified successfully. Welcome to Backend Ledger!\n\nBest regards,\nThe Backend Ledger Team`;
+  const html = getWelcomeHtml(name);
+  await sendemail(userEmail, subject, text, html);
 }
 
   async function sendVerificationEmail(userEmail, name, otp) {
     const subject = 'Verify your email address';
     const text = `Hello ${name},\n\nYour verification code is ${otp}. It expires in 10 minutes.`;
-    const html = getOTPHtml(otp);
+    const html = getOTPHtml(name, otp);
 
     await sendemail(userEmail, subject, text, html);
   }
 
-  module.exports = { sendRegisterEmail, sendVerificationEmail };
+  module.exports = { sendWelcomeEmail, sendVerificationEmail };
 
