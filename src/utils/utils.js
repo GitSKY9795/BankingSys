@@ -47,7 +47,7 @@ function getWelcomeHtml(name) {
         </div>
         <div style="padding:32px;">
             <p style="margin:0 0 16px;font-size:16px;color:#334155;">Hello ${name},</p>
-            <p style="margin:0 0 24px;font-size:16px;color:#334155;line-height:1.6;">Your email has been verified successfully. Your account is ready to use, and we are glad to have you with Backend Ledger.</p>
+            <p style="margin:0 0 24px;font-size:16px;color:#334155;line-height:1.6;">Your email has been verified successfully. Your account is ready to use, and we are glad to have you with Backend Ledger.TEST KR RHA SERIOUS NA LENA 😁😁☠️☠️-SUMEET</p>
             <p style="margin:0;font-size:14px;color:#64748b;line-height:1.6;">You can now sign in and continue with your dashboard.</p>
         </div>
     </div>
