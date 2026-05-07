@@ -1,0 +1,7 @@
+$kind: collection
+name: Banking System API
+variables:
+  - key: baseUrl
+    value: 'http://localhost:3000'
+  - key: token
+    value: ''

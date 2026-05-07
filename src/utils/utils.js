@@ -4,6 +4,7 @@ function generateOTP(length = 6) {
     const max = 10 ** length;
     return crypto.randomInt(0, max).toString().padStart(length, '0');
 }
+
 function getOTPHtml(name, otp){
     return `<!DOCTYPE html>
 <html lang="en">

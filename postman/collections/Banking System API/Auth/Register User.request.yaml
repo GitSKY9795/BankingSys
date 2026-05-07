@@ -1,0 +1,17 @@
+$kind: http-request
+name: Register User
+method: POST
+url: '{{baseUrl}}/api/auth/register'
+order: 1000
+description: Register a new user. Sends an OTP to the provided email for verification.
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "John Doe",
+      "email": "john@example.com",
+      "password": "password123"
+    }

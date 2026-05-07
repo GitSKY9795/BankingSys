@@ -1,0 +1,16 @@
+$kind: http-request
+name: Login
+method: POST
+url: '{{baseUrl}}/api/auth/login'
+order: 3000
+description: Login with email and password. Returns a JWT token (also set as a cookie).
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "john@example.com",
+      "password": "password123"
+    }

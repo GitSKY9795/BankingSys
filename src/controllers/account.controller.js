@@ -5,7 +5,7 @@ async function createAccount(req,res){
     user: user._id,
   });
   return res.status(201).json({
-    message: "Account created successfully",
+ account
   })
 }
 
