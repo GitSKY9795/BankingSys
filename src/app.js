@@ -10,5 +10,8 @@ app.use(cookieParser());
 app.use('/api/auth', authRouter);
 app.use('/api/account',accountRouter);
 app.use('/api/transaction',transactionRouter)
-app.get("/",(req,res)=>{res.send("Servuces are healthy and running smoothly")});
+ // Root health check for Render and general availability
+ app.get('/', (req, res) => {
+	 res.status(200).json({ message: 'API is running' });
+ });
 module.exports = app;
