@@ -12,6 +12,6 @@ app.use('/api/account',accountRouter);
 app.use('/api/transaction',transactionRouter)
  // Root health check for Render and general availability
  app.get('/', (req, res) => {
-	 res.status(200).json({ message: 'API is running' });
+	 res.send("the api's are healthy and are working fine");
  });
 module.exports = app;
