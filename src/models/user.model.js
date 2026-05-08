@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const { type } = require('node:os');
+const { isModuleNamespaceObject } = require('node:util/types');
 const userSchema = new mongoose.Schema({
     email:{
         type:String,required:[true,"Email is required for creating a user"],
@@ -25,7 +27,13 @@ const userSchema = new mongoose.Schema({
     isEmailVerified:{
         type:Boolean,
         default:false
-    }
+    },
+    systemUser:{
+        type:Boolean,
+        default:false,
+        select:false
+    },
+   
 }, {
         timestamps:true
 })

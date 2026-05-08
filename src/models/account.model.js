@@ -23,5 +23,17 @@ const accountSchema = new mongoose.Schema({
     timestamps: true
 });
 accountSchema.index({user: 1,status: 1}) //compound index
+
+accountSchema.methods.getBalance = async function() {
+  const ledgerModel = require('./ledger.model');
+  const creditEntries = await ledgerModel.find({ account: this._id, type: 'CREDIT' });
+  const debitEntries = await ledgerModel.find({ account: this._id, type: 'DEBIT' });
+  
+  const creditSum = creditEntries.reduce((sum, entry) => sum + entry.amount, 0);
+  const debitSum = debitEntries.reduce((sum, entry) => sum + entry.amount, 0);
+  
+  return creditSum - debitSum;
+};
+
  const accountModel = mongoose.model("account",accountSchema);
  module.exports = accountModel;

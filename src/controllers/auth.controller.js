@@ -2,6 +2,8 @@ const userModel = require('../models/user.model');
 const jwt = require('jsonwebtoken');
 const emailService = require('../services/email.service');
 const { generateOTP } = require('../utils/utils');
+const tokenBlacklisted = require('../models/tokenBlacklist.model');
+
 async function registerUser(req, res) {
   try {
     const { email, password, name } = req.body || {};
@@ -10,12 +12,23 @@ async function registerUser(req, res) {
       return res.status(400).json({ message: 'email, password, and name are required', status: 'failed' });
     }
 
-    const isExist = await userModel.findOne({ email });
+    const normalizedEmail = email.trim().toLowerCase();
+    const isExist = await userModel.findOne({ email: normalizedEmail });
     if (isExist) {
       return res.status(400).json({ message: 'User already exists with this email', status: 'failed' });
     }
 
-    const user = await userModel.create({ email, password, name });
+    const systemUserEmails = (process.env.SYSTEM_USER_EMAILS || process.env.SYSTEM_USER_EMAIL || '')
+      .split(',')
+      .map((item) => item.trim().toLowerCase())
+      .filter(Boolean);
+
+    const user = await userModel.create({
+      email: normalizedEmail,
+      password,
+      name,
+      systemUser: systemUserEmails.includes(normalizedEmail),
+    });
 
     const otp = generateOTP();
     user.emailVerificationOtp = otp;
@@ -48,7 +61,8 @@ async function login(req, res) {
       return res.status(400).json({ message: 'email and password are required', status: 'failed' });
     }
 
-    const user = await userModel.findOne({ email }).select('+password');
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await userModel.findOne({ email: normalizedEmail }).select('+password');
     if (!user) {
       return res.status(404).json({ message: 'User not found', status: 'failed' });
     }
@@ -122,5 +136,18 @@ async function verifyEmail(req, res) {
     return res.status(500).json({ message: 'Internal server error', status: 'error' });
   }
 }
+async function userLogoutController(req, res){
+const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+if(!token){
+  return res.status(400).json({
+    message:"Unauthorized or user not logged in . Please login to continue"
+  })
+}
+res.cookie("token","")
+await tokenBlacklisted.create({token});
+return res.status(200).json({
+  message:"User logged out successfully"
+})
+}
 
-module.exports = { registerUser, login, verifyEmail };
+module.exports = { registerUser, login, verifyEmail ,userLogoutController };
