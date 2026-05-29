@@ -1,5 +1,5 @@
 const nodemailer = require("nodemailer");
-const { getOTPHtml, getWelcomeHtml } = require('../utils/utils');
+const { getOTPHtml, getWelcomeHtml, getPasswordResetHtml, getPasswordResetOtpHtml } = require('../utils/utils');
 const { send } = require("node:process");
 const mailConfig = {
   user: (process.env.GOOGLE_USER_EMAIL || '').trim(),
@@ -432,4 +432,22 @@ await sendemail(userEmail , subject , text , html);
 
 
   module.exports = { sendWelcomeEmail, sendVerificationEmail , sendTransactionEmail , transActionfailureMail};
+
+  async function sendPasswordResetEmail(userEmail, name, resetLink) {
+    const subject = 'Reset your password';
+    const text = `Hello ${name},\n\nUse the link below to reset your password. The link expires in one hour:\n${resetLink}`;
+    const html = getPasswordResetHtml(name, resetLink);
+    await sendemail(userEmail, subject, text, html);
+  }
+
+  module.exports = { sendWelcomeEmail, sendVerificationEmail , sendTransactionEmail , transActionfailureMail, sendPasswordResetEmail };
+
+  async function sendPasswordResetOtpEmail(userEmail, name, otp) {
+    const subject = 'Your password reset code';
+    const text = `Hello ${name},\n\nYour password reset code is ${otp}. It expires in one hour.`;
+    const html = getPasswordResetOtpHtml(name, otp);
+    await sendemail(userEmail, subject, text, html);
+  }
+
+  module.exports.sendPasswordResetOtpEmail = sendPasswordResetOtpEmail;
 

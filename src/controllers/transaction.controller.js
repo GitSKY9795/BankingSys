@@ -121,7 +121,7 @@ async function createTransaction(req, res) {
             status: "PENDING"
         } ], { session }))[ 0 ]
 
-        const debitLedgerEntry = await ledgerModel.create([ {
+        await ledgerModel.create([ {
             account: fromAccount,
             amount: amount,
             transaction: transaction._id,
@@ -132,7 +132,7 @@ async function createTransaction(req, res) {
             return new Promise((resolve) => setTimeout(resolve, 15 * 1000));
         })()
 
-        const creditLedgerEntry = await ledgerModel.create([ {
+        await ledgerModel.create([ {
             account: toAccount,
             amount: amount,
             transaction: transaction._id,
@@ -149,7 +149,7 @@ async function createTransaction(req, res) {
         await session.commitTransaction()
         session.endSession()
     } catch (error) {
-
+        console.error('createTransaction error:', error);
         return res.status(400).json({
             message: "Transaction is Pending due to some issue, please retry after sometime",
         })
@@ -281,7 +281,149 @@ async function createInitialFundsTransaction(req, res) {
 
 }
 
+async function getMyTransactions(req, res) {
+    try {
+        const { accountId, type, from, to, limit = 200 } = req.query;
+        const userAccounts = await accountModel.find({ user: req.user._id }).select('_id');
+        const accountIds = userAccounts.map((account) => account._id);
+
+        if (!accountIds.length) {
+            return res.status(200).json({ transactions: [] });
+        }
+
+        const filters = {
+            $or: [
+                { fromAccount: { $in: accountIds } },
+                { toAccount: { $in: accountIds } },
+            ],
+        };
+
+        if (accountId) {
+            const selectedAccountId = new mongoose.Types.ObjectId(accountId);
+            if (type === 'sent') {
+                filters.$and = [{ fromAccount: selectedAccountId }];
+            } else if (type === 'received') {
+                filters.$and = [{ toAccount: selectedAccountId }];
+            } else {
+                filters.$and = [
+                    {
+                        $or: [
+                            { fromAccount: selectedAccountId },
+                            { toAccount: selectedAccountId },
+                        ],
+                    },
+                ];
+            }
+            delete filters.$or;
+        }
+
+        if (from || to) {
+            filters.createdAt = {};
+            if (from) {
+                filters.createdAt.$gte = new Date(from);
+            }
+            if (to) {
+                filters.createdAt.$lte = new Date(to);
+            }
+        }
+
+        const transactions = await transactionModel
+            .find(filters)
+            .sort({ createdAt: -1 })
+            .limit(Math.min(Number(limit) || 200, 500))
+            .populate('fromAccount')
+            .populate('toAccount');
+
+        return res.status(200).json({ transactions });
+    } catch (error) {
+        console.error('getMyTransactions error:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+async function getTransactionById(req, res) {
+    try {
+        const { transactionId } = req.params;
+        const userAccounts = await accountModel.find({ user: req.user._id }).select('_id');
+        const accountIds = userAccounts.map((account) => account._id);
+
+        const transaction = await transactionModel
+            .findOne({
+                _id: transactionId,
+                $or: [
+                    { fromAccount: { $in: accountIds } },
+                    { toAccount: { $in: accountIds } },
+                ],
+            })
+            .populate('fromAccount')
+            .populate('toAccount');
+
+        if (!transaction) {
+            return res.status(404).json({ message: 'Transaction not found' });
+        }
+
+        const ledgerEntries = await ledgerModel.find({ transaction: transaction._id }).populate('account');
+
+        return res.status(200).json({ transaction, ledgerEntries });
+    } catch (error) {
+        console.error('getTransactionById error:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+async function reverseTransaction(req, res) {
+    try {
+        const { transactionId } = req.params;
+
+        const original = await transactionModel.findById(transactionId);
+        if (!original) return res.status(404).json({ message: 'Transaction not found' });
+
+        if (original.status !== 'COMPLETED') {
+            return res.status(400).json({ message: 'Only completed transactions can be reversed' });
+        }
+
+        const session = await mongoose.startSession();
+        session.startTransaction();
+        try {
+            // create reversal ledger entries
+            await ledgerModel.create([
+                {
+                    account: original.toAccount,
+                    amount: original.amount,
+                    transaction: original._id,
+                    type: 'DEBIT',
+                },
+                {
+                    account: original.fromAccount,
+                    amount: original.amount,
+                    transaction: original._id,
+                    type: 'CREDIT',
+                },
+            ], { session });
+
+            original.status = 'REVERSED';
+            await original.save({ session });
+
+            await session.commitTransaction();
+            session.endSession();
+
+            return res.status(200).json({ message: 'Transaction reversed', transaction: original });
+        } catch (err) {
+            await session.abortTransaction();
+            session.endSession();
+            console.error('reverseTransaction error:', err);
+            return res.status(500).json({ message: 'Failed to reverse transaction' });
+        }
+    } catch (err) {
+        console.error('reverseTransaction outer error:', err);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
 module.exports = {
     createTransaction,
-    createInitialFundsTransaction
+    createInitialFundsTransaction,
+    getMyTransactions,
+    getTransactionById,
+    reverseTransaction
 }
